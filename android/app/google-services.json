@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "349497357539",
+    "project_id": "mynotes-flutter-armalik",
+    "storage_bucket": "mynotes-flutter-armalik.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:349497357539:android:39f5b3a40e00e491f1c1d6",
+        "android_client_info": {
+          "package_name": "com.armalik.mynotes"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAeFxS4-xYJrAtLRqpUEpZh6yy3h1Dnfso"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
