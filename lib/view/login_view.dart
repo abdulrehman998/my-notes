@@ -58,27 +58,38 @@ class _LoginViewState extends State<LoginView> {
                         InputDecoration(hintText: 'Enter your Password'),
                   ),
                   TextButton(
-                      onPressed: () async {
-                        final email = _email.text;
-                        final password = _password.text;
+                    onPressed: () async {
+                      final email = _email.text;
+                      final password = _password.text;
 
-                        try {
-                          final userCredebtail = await FirebaseAuth.instance
-                              .signInWithEmailAndPassword(
-                                  email: email, password: password);
+                      try {
+                        final userCredebtail = await FirebaseAuth.instance
+                            .signInWithEmailAndPassword(
+                                email: email, password: password);
 
-                          print(userCredebtail);
-                        } on FirebaseAuthException catch (e) {
-                          print(e.code);
+                        print(userCredebtail);
 
-                          if (e.code == 'invalid-credential') {
-                            print('Wrong Credentials');
-                          } else if (e.code == 'too-many-requests') {
-                            print('Wrong Password');
-                          }
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                            '/homepage/', (Route) => false);
+                      } on FirebaseAuthException catch (e) {
+                        print(e.code);
+
+                        if (e.code == 'invalid-credential') {
+                          print('Wrong Credentials');
+                        } else if (e.code == 'too-many-requests') {
+                          print('Wrong Password');
                         }
-                      },
-                      child: const Text('Login')),
+                      }
+                    },
+                    child: const Text('Login'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                          '/register/', (route) => false);
+                    },
+                    child: const Text('If not registered? Register here'),
+                  )
                 ],
               );
             default:

@@ -59,26 +59,35 @@ class _RegisterViewState extends State<RegisterView> {
                         InputDecoration(hintText: 'Enter your Password'),
                   ),
                   TextButton(
-                      onPressed: () async {
-                        final email = _email.text;
-                        final password = _password.text;
-                        try {
-                          final userCredebtail = await FirebaseAuth.instance
-                              .createUserWithEmailAndPassword(
-                                  email: email, password: password);
+                    onPressed: () async {
+                      final email = _email.text;
+                      final password = _password.text;
+                      try {
+                        final userCredebtail = await FirebaseAuth.instance
+                            .createUserWithEmailAndPassword(
+                                email: email, password: password);
 
-                          print(userCredebtail);
-                        } on FirebaseAuthException catch (e) {
-                          print(e.code);
+                        print(userCredebtail);
+                      } on FirebaseAuthException catch (e) {
+                        print(e.code);
 
-                          if (e.code == 'weak-password') {
-                            print('The Password you entered is weak');
-                          } else if (e.code == 'email-already-in-use') {
-                            print('The email you entered is already in use');
-                          }
+                        if (e.code == 'weak-password') {
+                          print('The Password you entered is weak');
+                        } else if (e.code == 'email-already-in-use') {
+                          print('The email you entered is already in use');
                         }
-                      },
-                      child: const Text('Register')),
+                      }
+                    },
+                    child: const Text('Register'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context)
+                          .pushNamedAndRemoveUntil('/login/', (Route) => false);
+                    },
+                    child:
+                        const Text('If already Registered? Go to Login Page'),
+                  )
                 ],
               );
             default:
