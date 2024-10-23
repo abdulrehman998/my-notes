@@ -1,7 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:mynotes/constants/routes.dart';
 import 'package:mynotes/firebase_options.dart';
+import 'dart:developer' as devtools show log;
+
+import 'package:mynotes/utilities/show_error_dialog.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -47,7 +51,8 @@ class _LoginViewState extends State<LoginView> {
                     autocorrect: false,
                     enableSuggestions: false,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(hintText: 'Enter your Email'),
+                    decoration:
+                        const InputDecoration(hintText: 'Enter your Email'),
                   ),
                   TextField(
                     controller: _password,
@@ -55,7 +60,7 @@ class _LoginViewState extends State<LoginView> {
                     autocorrect: false,
                     enableSuggestions: false,
                     decoration:
-                        InputDecoration(hintText: 'Enter your Password'),
+                        const InputDecoration(hintText: 'Enter your Password'),
                   ),
                   TextButton(
                     onPressed: () async {
@@ -63,22 +68,51 @@ class _LoginViewState extends State<LoginView> {
                       final password = _password.text;
 
                       try {
-                        final userCredebtail = await FirebaseAuth.instance
+                        final userCredentials = await FirebaseAuth.instance
                             .signInWithEmailAndPassword(
-                                email: email, password: password);
+                          email: email,
+                          password: password,
+                        );
 
-                        print(userCredebtail);
+                        final user = FirebaseAuth.instance.currentUser;
 
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                            '/homepage/', (Route) => false);
+                        if (user?.emailVerified ?? false) {
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            notesRoute,
+                            (Route) => false,
+                          );
+                        } else {
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            verifyEmailRoute,
+                            (Route) => false,
+                          );
+                        }
+
+                        devtools.log(userCredentials.toString());
                       } on FirebaseAuthException catch (e) {
-                        print(e.code);
+                        devtools.log(e.code);
 
                         if (e.code == 'invalid-credential') {
-                          print('Wrong Credentials');
+                          await showErrorDialogue(
+                            context,
+                            'Invalid Credentials',
+                          );
                         } else if (e.code == 'too-many-requests') {
-                          print('Wrong Password');
+                          await showErrorDialogue(
+                            context,
+                            'Wrong Password',
+                          );
+                        } else {
+                          await showErrorDialogue(
+                            context,
+                            'Error: ${e.code}',
+                          );
                         }
+                      } catch (e) {
+                        await showErrorDialogue(
+                          context,
+                          e.toString(),
+                        );
                       }
                     },
                     child: const Text('Login'),
@@ -86,14 +120,14 @@ class _LoginViewState extends State<LoginView> {
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pushNamedAndRemoveUntil(
-                          '/register/', (route) => false);
+                          registerRoute, (route) => false);
                     },
                     child: const Text('If not registered? Register here'),
                   )
                 ],
               );
             default:
-              return Text('Loading..');
+              return const Text('Loading..');
           }
         },
       ),

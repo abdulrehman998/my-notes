@@ -1,8 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:mynotes/constants/routes.dart';
 import 'package:mynotes/firebase_options.dart';
+import 'dart:developer' as devtools show log;
+
+import 'package:mynotes/utilities/show_error_dialog.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -48,7 +51,8 @@ class _RegisterViewState extends State<RegisterView> {
                     autocorrect: false,
                     enableSuggestions: false,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(hintText: 'Enter your Email'),
+                    decoration:
+                        const InputDecoration(hintText: 'Enter your Email'),
                   ),
                   TextField(
                     controller: _password,
@@ -56,34 +60,58 @@ class _RegisterViewState extends State<RegisterView> {
                     autocorrect: false,
                     enableSuggestions: false,
                     decoration:
-                        InputDecoration(hintText: 'Enter your Password'),
+                        const InputDecoration(hintText: 'Enter your Password'),
                   ),
                   TextButton(
                     onPressed: () async {
                       final email = _email.text;
                       final password = _password.text;
                       try {
-                        final userCredebtail = await FirebaseAuth.instance
+                        final userCredentail = await FirebaseAuth.instance
                             .createUserWithEmailAndPassword(
-                                email: email, password: password);
-
-                        print(userCredebtail);
+                          email: email,
+                          password: password,
+                        );
+                        final user = FirebaseAuth.instance.currentUser;
+                        await user?.sendEmailVerification();
+                        Navigator.of(context).pushNamed(verifyEmailRoute);
                       } on FirebaseAuthException catch (e) {
-                        print(e.code);
+                        devtools.log(e.code);
 
                         if (e.code == 'weak-password') {
-                          print('The Password you entered is weak');
+                          await showErrorDialogue(
+                            context,
+                            'The Password you entered is weak',
+                          );
                         } else if (e.code == 'email-already-in-use') {
-                          print('The email you entered is already in use');
+                          await showErrorDialogue(
+                            context,
+                            'The email you entered is already in use',
+                          );
+                        } else if (e.code == 'invalid-email') {
+                          await showErrorDialogue(
+                            context,
+                            'The email is invalid',
+                          );
+                        } else {
+                          await showErrorDialogue(
+                            context,
+                            e.toString(),
+                          );
                         }
+                      } catch (e) {
+                        await showErrorDialogue(
+                          context,
+                          e.toString(),
+                        );
                       }
                     },
                     child: const Text('Register'),
                   ),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context)
-                          .pushNamedAndRemoveUntil('/login/', (Route) => false);
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                          loginRoute, (Route) => false);
                     },
                     child:
                         const Text('If already Registered? Go to Login Page'),
@@ -91,7 +119,7 @@ class _RegisterViewState extends State<RegisterView> {
                 ],
               );
             default:
-              return Text('Loading..');
+              return const Text('Loading..');
           }
         },
       ),
