@@ -1,10 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:mynotes/constants/routes.dart';
-import 'package:mynotes/firebase_options.dart';
-import 'dart:developer' as devtools show log;
-
+import 'package:mynotes/services/auth/auth_exceptions.dart';
+import 'package:mynotes/services/auth/auth_service.dart';
 import 'package:mynotes/utilities/show_error_dialog.dart';
 
 class LoginView extends StatefulWidget {
@@ -38,9 +35,7 @@ class _LoginViewState extends State<LoginView> {
     return Scaffold(
       appBar: AppBar(title: const Text('Login Page')),
       body: FutureBuilder(
-        future: Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        ),
+        future: AuthService.firebase().initialize(),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.done:
@@ -68,15 +63,14 @@ class _LoginViewState extends State<LoginView> {
                       final password = _password.text;
 
                       try {
-                        final userCredentials = await FirebaseAuth.instance
-                            .signInWithEmailAndPassword(
+                        await AuthService.firebase().login(
                           email: email,
                           password: password,
                         );
 
-                        final user = FirebaseAuth.instance.currentUser;
+                        final user = AuthService.firebase().currentUser;
 
-                        if (user?.emailVerified ?? false) {
+                        if (user?.isEmailVerified ?? false) {
                           Navigator.of(context).pushNamedAndRemoveUntil(
                             notesRoute,
                             (Route) => false,
@@ -87,31 +81,25 @@ class _LoginViewState extends State<LoginView> {
                             (Route) => false,
                           );
                         }
-
-                        devtools.log(userCredentials.toString());
-                      } on FirebaseAuthException catch (e) {
-                        devtools.log(e.code);
-
-                        if (e.code == 'invalid-credential') {
-                          await showErrorDialogue(
-                            context,
-                            'Invalid Credentials',
-                          );
-                        } else if (e.code == 'too-many-requests') {
-                          await showErrorDialogue(
-                            context,
-                            'Wrong Password',
-                          );
-                        } else {
-                          await showErrorDialogue(
-                            context,
-                            'Error: ${e.code}',
-                          );
-                        }
-                      } catch (e) {
+                      } on UserNotFoundException {
                         await showErrorDialogue(
                           context,
-                          e.toString(),
+                          'Invalid Credentials',
+                        );
+                      } on InvalidCredentialException {
+                        await showErrorDialogue(
+                          context,
+                          'Invalid Credentials',
+                        );
+                      } on TooManyRequestsException {
+                        await showErrorDialogue(
+                          context,
+                          'Wrong Password',
+                        );
+                      } on GenericAuthException {
+                        await showErrorDialogue(
+                          context,
+                          'Authentication Error',
                         );
                       }
                     },
